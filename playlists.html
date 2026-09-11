@@ -159,6 +159,11 @@
   .card-body label { display: block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 6px; }
   .card-body small { display: block; font-size: 11px; color: var(--sub); margin-bottom: 10px; line-height: 1.5; }
   .playlist-input-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .playlist-thumb {
+    width: 42px; height: 31px; border-radius: 6px; object-fit: cover;
+    background: rgba(255,255,255,0.05); display: none; flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
   input[type="text"] {
     flex: 1; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15);
     border-radius: 10px; padding: 9px 13px; font-size: 12.5px;
@@ -426,23 +431,49 @@
     var container = document.getElementById(containerId);
     var row = document.createElement('div');
     row.className = 'playlist-input-row';
+
+    var thumb = document.createElement('img');
+    thumb.className = 'playlist-thumb';
+
     var input = document.createElement('input');
     input.type = 'text';
     input.placeholder = containerId === 'ytm-inputs'
       ? 'https://music.youtube.com/watch?v=...&list=...'
       : 'https://www.youtube.com/playlist?list=PLxxxxxx  or  PLxxxxxx';
     input.value = value || '';
+
+    function updateThumb() {
+      var val = input.value.trim();
+      var m = val.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+      if (!m) m = val.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+      
+      if (m) {
+        thumb.src = 'https://img.youtube.com/vi/' + m[1] + '/mqdefault.jpg';
+        thumb.style.display = 'block';
+      } else {
+        thumb.style.display = 'none';
+        thumb.src = '';
+      }
+    }
+
+    input.addEventListener('input', updateThumb);
+
     var removeBtn = document.createElement('button');
     removeBtn.className = 'remove-btn';
     removeBtn.title = 'Remove';
     removeBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     removeBtn.onclick = function() {
       var allRows = container.querySelectorAll('.playlist-input-row');
-      if (allRows.length > 1) { row.remove(); } else { input.value = ''; }
+      if (allRows.length > 1) { row.remove(); } else { input.value = ''; updateThumb(); }
     };
+    
+    row.appendChild(thumb);
     row.appendChild(input);
     row.appendChild(removeBtn);
     container.appendChild(row);
+
+    // Initial check
+    updateThumb();
   }
 
   function getValues(containerId) {

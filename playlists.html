@@ -457,7 +457,7 @@
         var data = JSON.parse(raw);
         var cleanYtm = (data.ytm || []).filter(function(u){ return u && u.indexOf('PLiOkCwQzPydzWlRtgIS84XqtDu0g4UGOR') === -1; });
         var cleanYt  = (data.yt  || []).filter(function(u){ return u && u.indexOf('PLiOkCwQzPydzWlRtgIS84XqtDu0g4UGOR') === -1; });
-        renderInputs('ytm-inputs', cleanYtm.length ? cleanYtm : DEFAULTS.ytm);
+        renderInputs('ytm-inputs', cleanYtm);
         renderInputs('yt-inputs',  cleanYt);
         showStatus('Loaded ' + (cleanYtm.length + cleanYt.length) + ' saved playlist(s).');
         return;

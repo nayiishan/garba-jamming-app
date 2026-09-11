@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garba Jamming — Playlist Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0806;
+    --card: rgba(255,255,255,0.06);
+    --card-hover: rgba(255,255,255,0.09);
+    --border: rgba(255,255,255,0.14);
+    --gold: #E9B93C;
+    --marigold: #C9873A;
+    --text: #F5EEDD;
+    --sub: rgba(255,255,255,0.62);
+    --danger: #FF453A;
+    --success: #34C759;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Lock Screen ─────────────────────────────────────────── */
+  #lock-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(201,135,58,0.14) 0%, transparent 60%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .lock-card {
+    width: min(360px, 100%);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 24px;
+    padding: 36px 28px;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    backdrop-filter: blur(24px);
+  }
+  .lock-icon {
+    width: 56px; height: 56px; border-radius: 18px;
+    background: radial-gradient(circle at 35% 30%, rgba(233,185,60,0.35), rgba(201,135,58,0.12));
+    border: 1px solid rgba(233,185,60,0.4);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 18px; font-size: 24px;
+    box-shadow: 0 8px 24px rgba(201,135,58,0.2);
+  }
+  .lock-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .lock-sub { font-size: 12.5px; color: var(--sub); margin-bottom: 28px; line-height: 1.5; }
+
+  /* PIN dot display */
+  .pin-dots {
+    display: flex; justify-content: center; gap: 14px; margin-bottom: 24px;
+  }
+  .pin-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.3);
+    background: transparent;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  }
+  .pin-dot.filled {
+    background: var(--gold);
+    border-color: var(--gold);
+    transform: scale(1.15);
+    box-shadow: 0 0 8px rgba(233,185,60,0.6);
+  }
+  .pin-dot.shake { animation: shake 0.35s ease; }
+
+  @keyframes shake {
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-6px);}
+    40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
+
+  /* Numpad */
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 240px;
+    margin: 0 auto 16px;
+  }
+  .num-btn {
+    height: 56px; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.07);
+    color: #fff; font-size: 20px; font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease, transform 0.1s ease;
+    user-select: none;
+  }
+  .num-btn:hover { background: rgba(255,255,255,0.15); }
+  .num-btn:active { transform: scale(0.93); background: rgba(255,255,255,0.22); }
+  .num-btn.zero { grid-column: 2; }
+  .num-btn.del {
+    background: rgba(255,69,58,0.1);
+    border-color: rgba(255,69,58,0.2);
+    color: var(--danger);
+    font-size: 16px;
+  }
+  .num-btn.del:hover { background: rgba(255,69,58,0.22); }
+
+  .lock-error {
+    font-size: 12px; color: var(--danger); margin-top: 8px;
+    min-height: 18px; letter-spacing: 0.3px;
+  }
+
+  /* ── Main Content (hidden until unlocked) ────────────────── */
+  #main-content {
+    display: none;
+    padding: 40px 20px 80px;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(201,135,58,0.12) 0%, transparent 60%);
+  }
+  #main-content.visible { display: flex; }
+
+  .container { width: min(720px, 100%); }
+  .header { text-align: center; margin-bottom: 40px; }
+  .header-icon { font-size: 36px; display: block; margin-bottom: 10px; }
+  h1 { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  h1 span { color: var(--gold); }
+  .header p { font-size: 13px; color: var(--sub); line-height: 1.6; }
+  .section { margin-bottom: 28px; }
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--gold); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .playlist-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 16px; margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .playlist-card:focus-within { background: var(--card-hover); border-color: rgba(233,185,60,0.35); }
+  .card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 17px; margin-top: 2px;
+  }
+  .card-icon.ytm { background: rgba(255,0,80,0.15); }
+  .card-icon.yt  { background: rgba(255,0,0,0.15); }
+  .card-body { flex: 1; min-width: 0; }
+  .card-body label { display: block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 6px; }
+  .card-body small { display: block; font-size: 11px; color: var(--sub); margin-bottom: 10px; line-height: 1.5; }
+  .playlist-input-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  input[type="text"] {
+    flex: 1; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px; padding: 9px 13px; font-size: 12.5px;
+    color: var(--text); font-family: 'Poppins', sans-serif; outline: none;
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+  input[type="text"]::placeholder { color: rgba(255,255,255,0.3); }
+  input[type="text"]:focus { border-color: rgba(233,185,60,0.55); background: rgba(0,0,0,0.5); }
+  .remove-btn {
+    width: 30px; height: 30px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12); background: rgba(255,69,58,0.1);
+    color: var(--danger); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: background 0.18s ease, transform 0.12s ease;
+  }
+  .remove-btn:hover { background: rgba(255,69,58,0.25); }
+  .remove-btn:active { transform: scale(0.9); }
+  .add-link-btn {
+    background: none; border: 1px dashed rgba(255,255,255,0.2); border-radius: 10px;
+    color: var(--sub); font-size: 12px; font-family: 'Poppins', sans-serif;
+    padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center;
+    gap: 6px; margin-top: 8px; transition: border-color 0.18s, color 0.18s;
+  }
+  .add-link-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .actions { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+  .btn-save {
+    flex: 1; min-width: 180px; padding: 13px 20px; border-radius: 14px; border: none;
+    background: linear-gradient(135deg, var(--gold), var(--marigold));
+    color: #0F0B06; font-weight: 700; font-size: 14px; font-family: 'Poppins', sans-serif;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 8px 24px rgba(201,135,58,0.35); transition: filter 0.2s ease, transform 0.15s ease;
+  }
+  .btn-save:hover { filter: brightness(1.1); }
+  .btn-save:active { transform: scale(0.97); }
+  .btn-open {
+    padding: 13px 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); font-weight: 500;
+    font-size: 14px; font-family: 'Poppins', sans-serif; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s ease;
+  }
+  .btn-open:hover { background: rgba(255,255,255,0.16); }
+  .btn-clear {
+    padding: 13px 20px; border-radius: 14px; border: 1px solid rgba(255,69,58,0.3);
+    background: rgba(255,69,58,0.08); color: var(--danger); font-weight: 500;
+    font-size: 14px; font-family: 'Poppins', sans-serif; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s ease;
+  }
+  .btn-clear:hover { background: rgba(255,69,58,0.18); }
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: rgba(20,20,20,0.92); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; font-size: 13px; font-weight: 500; padding: 10px 22px;
+    border-radius: 999px; opacity: 0; pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    backdrop-filter: blur(16px); display: flex; align-items: center; gap: 8px;
+    white-space: nowrap; z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(52,199,89,0.4); }
+  .status-row {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    border-radius: 12px; background: rgba(52,199,89,0.08);
+    border: 1px solid rgba(52,199,89,0.25); font-size: 12px;
+    color: var(--success); margin-top: 20px; opacity: 0; transition: opacity 0.3s ease;
+  }
+  .status-row.show { opacity: 1; }
+  .divider {
+    width: 48px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 0 auto 32px; opacity: 0.7;
+  }
+  .lock-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(52,199,89,0.1); border: 1px solid rgba(52,199,89,0.3);
+    color: #34C759; font-size: 11px; font-weight: 600;
+    padding: 4px 12px; border-radius: 999px; margin-bottom: 28px;
+  }
+  @media (max-width: 500px) {
+    .actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Lock Screen ──────────────────────────────────────── -->
+<div id="lock-screen">
+  <div class="lock-card">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">Playlist Manager</div>
+    <div class="lock-sub">Enter your PIN to access<br>the admin panel</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+    <div class="numpad">
+      <button class="num-btn" onclick="pressKey('1')">1</button>
+      <button class="num-btn" onclick="pressKey('2')">2</button>
+      <button class="num-btn" onclick="pressKey('3')">3</button>
+      <button class="num-btn" onclick="pressKey('4')">4</button>
+      <button class="num-btn" onclick="pressKey('5')">5</button>
+      <button class="num-btn" onclick="pressKey('6')">6</button>
+      <button class="num-btn" onclick="pressKey('7')">7</button>
+      <button class="num-btn" onclick="pressKey('8')">8</button>
+      <button class="num-btn" onclick="pressKey('9')">9</button>
+      <button class="num-btn zero" onclick="pressKey('0')">0</button>
+      <button class="num-btn del" onclick="pressDelete()">⌫</button>
+    </div>
+    <div class="lock-error" id="lock-error"></div>
+  </div>
+</div>
+
+<!-- ── Main Content ─────────────────────────────────────── -->
+<div id="main-content">
+<div class="container">
+  <div class="header">
+    <span class="header-icon">🎵</span>
+    <h1>Garba Jamming <span>Playlist Manager</span></h1>
+    <p>Add or remove YouTube &amp; YouTube Music playlist links below.<br>Click <strong>Save &amp; Apply</strong> — the player will automatically load these playlists.</p>
+  </div>
+  <div style="text-align:center;">
+    <span class="lock-badge">🔒 Admin Only</span>
+  </div>
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#E9B93C"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+      YouTube Music Playlists
+    </div>
+    <div class="playlist-card">
+      <div class="card-icon ytm">🎶</div>
+      <div class="card-body">
+        <label>YouTube Music URLs</label>
+        <small>Paste full YouTube Music URLs (music.youtube.com/watch?v=...&amp;list=...) — one per row.</small>
+        <div id="ytm-inputs"></div>
+        <button class="add-link-btn" id="ytm-add-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add YouTube Music URL
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#E9B93C"><path d="M19.59 7a1 1 0 0 0-1-.01l-12 7a1 1 0 0 0 0 1.72l12 7A1 1 0 0 0 20 22V8a1 1 0 0 0-.41-.8z"/></svg>
+      YouTube Playlists
+    </div>
+    <div class="playlist-card">
+      <div class="card-icon yt">▶️</div>
+      <div class="card-body">
+        <label>YouTube Playlist URLs or IDs</label>
+        <small>Paste full YouTube playlist URLs (youtube.com/playlist?list=...) or just the playlist ID (PLxxxxxxx).</small>
+        <div id="yt-inputs"></div>
+        <button class="add-link-btn" id="yt-add-btn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add YouTube Playlist URL
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-row" id="status-row">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="status-text">Playlists saved and active.</span>
+  </div>
+
+  <div class="actions">
+    <button class="btn-save" id="save-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save &amp; Apply
+    </button>
+    <button class="btn-open" id="open-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open Player
+    </button>
+    <button class="btn-clear" id="clear-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      Reset All
+    </button>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── PIN Lock ──────────────────────────────────────────────
+  var CORRECT_PIN = '9155';
+  var SESSION_KEY = 'gj_admin_auth';
+  var pin = '';
+
+  function updateDots() {
+    for (var i = 0; i < 4; i++) {
+      var dot = document.getElementById('dot-' + i);
+      dot.classList.toggle('filled', i < pin.length);
+    }
+  }
+
+  function pressKey(digit) {
+    if (pin.length >= 4) return;
+    pin += digit;
+    updateDots();
+    if (pin.length === 4) {
+      setTimeout(checkPin, 120);
+    }
+  }
+
+  function pressDelete() {
+    if (pin.length === 0) return;
+    pin = pin.slice(0, -1);
+    updateDots();
+    document.getElementById('lock-error').textContent = '';
+  }
+
+  function checkPin() {
+    if (pin === CORRECT_PIN) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      document.getElementById('lock-screen').style.display = 'none';
+      document.getElementById('main-content').classList.add('visible');
+      loadPlaylists();
+    } else {
+      // Shake and reset
+      var dots = document.querySelectorAll('.pin-dot');
+      dots.forEach(function(d) { d.classList.add('shake'); });
+      setTimeout(function() {
+        dots.forEach(function(d) { d.classList.remove('shake'); });
+        pin = '';
+        updateDots();
+        document.getElementById('lock-error').textContent = 'Incorrect PIN. Try again.';
+      }, 380);
+    }
+  }
+
+  // Keyboard support
+  document.addEventListener('keydown', function(e) {
+    if (document.getElementById('lock-screen').style.display === 'none') return;
+    if (e.key >= '0' && e.key <= '9') pressKey(e.key);
+    if (e.key === 'Backspace') pressDelete();
+  });
+
+  // Check session on load
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    document.getElementById('lock-screen').style.display = 'none';
+    document.getElementById('main-content').classList.add('visible');
+  }
+
+  // ── Playlist Manager ──────────────────────────────────────
+  var STORAGE_KEY = 'gj_playlists_v1';
+  var DEFAULTS = {
+    ytm: ['https://music.youtube.com/playlist?list=PLWfMLjZuX3nECAxZMzh1fTphRH1UxZvEj'],
+    yt: []
+  };
+
+  function renderInputs(containerId, values) {
+    var container = document.getElementById(containerId);
+    container.innerHTML = '';
+    var list = (values && values.length) ? values : [''];
+    list.forEach(function(val) { addRow(containerId, val); });
+  }
+
+  function addRow(containerId, value) {
+    var container = document.getElementById(containerId);
+    var row = document.createElement('div');
+    row.className = 'playlist-input-row';
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = containerId === 'ytm-inputs'
+      ? 'https://music.youtube.com/watch?v=...&list=...'
+      : 'https://www.youtube.com/playlist?list=PLxxxxxx  or  PLxxxxxx';
+    input.value = value || '';
+    var removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-btn';
+    removeBtn.title = 'Remove';
+    removeBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    removeBtn.onclick = function() {
+      var allRows = container.querySelectorAll('.playlist-input-row');
+      if (allRows.length > 1) { row.remove(); } else { input.value = ''; }
+    };
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    container.appendChild(row);
+  }
+
+  function getValues(containerId) {
+    var inputs = document.querySelectorAll('#' + containerId + ' input');
+    return Array.from(inputs).map(function(i) { return i.value.trim(); }).filter(Boolean);
+  }
+
+  function loadPlaylists() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var data = JSON.parse(raw);
+        var cleanYtm = (data.ytm || []).filter(function(u){ return u && u.indexOf('PLiOkCwQzPydzWlRtgIS84XqtDu0g4UGOR') === -1; });
+        var cleanYt  = (data.yt  || []).filter(function(u){ return u && u.indexOf('PLiOkCwQzPydzWlRtgIS84XqtDu0g4UGOR') === -1; });
+        renderInputs('ytm-inputs', cleanYtm.length ? cleanYtm : DEFAULTS.ytm);
+        renderInputs('yt-inputs',  cleanYt);
+        showStatus('Loaded ' + (cleanYtm.length + cleanYt.length) + ' saved playlist(s).');
+        return;
+      }
+    } catch(e) {}
+    renderInputs('ytm-inputs', DEFAULTS.ytm);
+    renderInputs('yt-inputs',  DEFAULTS.yt);
+  }
+
+  function save() {
+    var ytm = getValues('ytm-inputs');
+    var yt  = getValues('yt-inputs');
+    var data = { ytm: ytm, yt: yt, savedAt: Date.now() };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      showToast('Saved! Player will load ' + (ytm.length + yt.length) + ' playlist(s).', 'success');
+      showStatus('Active: ' + ytm.length + ' YouTube Music + ' + yt.length + ' YouTube playlist(s). Saved at ' + new Date().toLocaleTimeString());
+    } catch(e) {
+      showToast('Error saving: ' + e.message, '');
+    }
+  }
+
+  function clearAll() {
+    if (!confirm('Reset all playlists to defaults?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    renderInputs('ytm-inputs', DEFAULTS.ytm);
+    renderInputs('yt-inputs',  []);
+    showToast('Reset to defaults.', '');
+    document.getElementById('status-row').classList.remove('show');
+  }
+
+  function showToast(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show ' + (type || '');
+    setTimeout(function() { el.className = 'toast'; }, 3200);
+  }
+
+  function showStatus(msg) {
+    document.getElementById('status-text').textContent = msg;
+    document.getElementById('status-row').classList.add('show');
+  }
+
+  document.getElementById('ytm-add-btn').addEventListener('click', function() { addRow('ytm-inputs', ''); });
+  document.getElementById('yt-add-btn').addEventListener('click',  function() { addRow('yt-inputs',  ''); });
+  document.getElementById('save-btn').addEventListener('click', save);
+  document.getElementById('open-btn').addEventListener('click', function() { window.open('index.html', '_blank'); });
+  document.getElementById('clear-btn').addEventListener('click', clearAll);
+
+  // Init: if already authenticated via session, load playlists immediately
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    loadPlaylists();
+  }
+</script>
+</body>
+</html>

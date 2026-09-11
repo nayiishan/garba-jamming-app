@@ -36,7 +36,7 @@ window.GJPlaylistQueue = (function () {
           var item = extractPlaylistId(url);
           if (item) entries.push(item);
         });
-        if (entries.length > 0) return entries;
+        return entries; // A saved empty selection must stay empty.
       }
     } catch (e) {}
     entries.push({ type: 'playlist', id: DEFAULT_PLAYLIST });
@@ -95,6 +95,11 @@ window.GJPlaylistQueue = (function () {
       var reports = playlistEntries.map(function (entry) {
         return { playlist: entry.id, status: 'pending', tracks: 0 };
       });
+
+      if (!playlistEntries.length) {
+        resolve({ ids: [], reports: reports });
+        return;
+      }
 
       var mountId = opts.mount || 'playlist-reader';
       var mountEl = document.getElementById(mountId);

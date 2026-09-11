@@ -1,7 +1,9 @@
-const CACHE_NAME = 'garba-jamming-v2';
+const CACHE_NAME = 'garba-jamming-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './gj-playlist-queue.js',
+  './playlists.html',
   './manifest.json',
   './favicon.png',
   './apple-touch-icon.png',
@@ -28,20 +30,22 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only cache same-origin GET requests; bypass YouTube/Vimeo/Firebase network requests
-  if (event.request.method === 'GET' && event.request.url.startsWith(self.location.origin)) {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          fetch(event.request).then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-            }
-          }).catch(() => {});
-          return cachedResponse;
-        }
-        return fetch(event.request);
-      })
-    );
-  }
+  const url = new URL(event.request.url);
+  if (event.request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  // Fetch current app files when online; keep the installed app available offline.
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    try {
+      const response = await fetch(event.request);
+      if (response.status === 200) {
+        await cache.put(event.request, response.clone());
+      }
+      return response;
+    } catch (error) {
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+      throw error;
+    }
+  })());
 });

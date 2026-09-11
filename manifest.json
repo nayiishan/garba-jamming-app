@@ -1,0 +1,29 @@
+{
+  "name": "જય અંબે — Garba Jamming",
+  "short_name": "Garba Player",
+  "description": "Non-Stop Garba Jamming Player — 24x7 Live Music",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0A0806",
+  "theme_color": "#0A0806",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

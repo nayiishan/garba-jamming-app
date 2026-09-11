@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "listeners": {
+      ".read": "true",
+      ".write": "false",
+      "$sid": {
+        ".write": "true"
+      }
+    },
+    ".read": "false",
+    ".write": "false"
+  }
+}

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garba Jamming — Instructions & Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0806;
+    --card: rgba(255, 255, 255, 0.06);
+    --border: rgba(255, 255, 255, 0.16);
+    --gold: #E9B93C;
+    --marigold: #C9873A;
+    --text: #F5EEDD;
+    --sub: rgba(255, 255, 255, 0.7);
+    --code-bg: rgba(0, 0, 0, 0.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 20px;
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    display: flex; justify-content: center;
+  }
+  .container {
+    width: min(780px, 100%);
+    background: rgba(20, 15, 12, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 36px 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  h1 {
+    font-size: 28px; font-weight: 700; color: #fff;
+    margin: 0 0 8px; display: flex; align-items: center; gap: 10px;
+  }
+  h1 span { color: var(--gold); }
+  .subtitle { font-size: 14px; color: var(--sub); margin-bottom: 32px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+  
+  .section { margin-bottom: 32px; }
+  .section-title {
+    font-size: 16px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--gold); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px; margin-bottom: 16px;
+  }
+  
+  code, pre {
+    font-family: monospace; background: var(--code-bg);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+    color: #FFD700; font-size: 13px;
+  }
+  code { padding: 2px 6px; }
+  pre {
+    padding: 14px 16px; overflow-x: auto; margin: 10px 0 0;
+    line-height: 1.5; white-space: pre-wrap;
+  }
+  
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin-bottom: 6px; color: var(--sub); }
+  li strong { color: #fff; }
+
+  .badge {
+    display: inline-block; background: rgba(233,185,60,0.15);
+    border: 1px solid rgba(233,185,60,0.4); color: var(--gold);
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  }
+
+  .footer {
+    text-align: center; margin-top: 40px; font-size: 12px; color: var(--sub);
+    border-top: 1px solid var(--border); padding-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>જય અંબે <span>Garba Player Guide</span></h1>
+  <div class="subtitle">Complete technical guide & instructions for editing playlists, commands, and deployment.</div>
+
+  <!-- Section 1: How to Add & Remove Playlists -->
+  <div class="section">
+    <div class="section-title">🎵 1. How to Add & Remove Playlists</div>
+    <div class="card">
+      Open <code>index.html</code> in your editor and locate <code>CONFIG</code> around line 699:
+      <pre>const CONFIG = {
+  YOUTUBE_MUSIC_PLAYLISTS: 'https://music.youtube.com/playlist?list=PLWfMLjZuX3nECAxZMzh1fTphRH1UxZvEj',
+  YOUTUBE_PLAYLISTS: ''
+};</pre>
+
+      <p><strong>To ADD a Playlist:</strong><br>
+      Add playlist URLs or Playlist IDs separated by commas in <code>YOUTUBE_PLAYLISTS</code>:</p>
+      <pre>YOUTUBE_PLAYLISTS: 'PLK7o_bJ0788Vn7L--Hw0Y5G0c2R6-e7M2, https://www.youtube.com/playlist?list=YOUR_PLAYLIST_ID'</pre>
+
+      <p><strong>To REMOVE a Playlist:</strong><br>
+      Delete the URL or ID from the string, or set it to empty <code>''</code>.</p>
+    </div>
+  </div>
+
+  <!-- Section 2: Deployment Commands -->
+  <div class="section">
+    <div class="section-title">🚀 2. Deploying to Firebase Hosting</div>
+    <div class="card">
+      <p>Open your terminal and run these two commands in order:</p>
+      <p><strong>Step 1: Navigate to project directory:</strong></p>
+      <pre>cd C:\Users\Ishan\.gemini\antigravity\scratch\Garba-Jamming</pre>
+
+      <p><strong>Step 2: Deploy to Firebase:</strong></p>
+      <pre>npx firebase-tools deploy --only hosting</pre>
+
+      <p>Your live web app URL: <a href="https://garba-jamming-app.web.app" target="_blank" style="color:var(--gold);">https://garba-jamming-app.web.app</a></p>
+    </div>
+  </div>
+
+  <!-- Section 3: Keyboard Shortcuts -->
+  <div class="section">
+    <div class="section-title">⌨️ 3. Keyboard & Multimedia Hardware Shortcuts</div>
+    <div class="card">
+      <ul>
+        <li><strong>Spacebar / K / Hardware Play-Pause:</strong> Toggle Play / Pause</li>
+        <li><strong>N / ArrowRight / Hardware Next:</strong> Next Track</li>
+        <li><strong>P / ArrowLeft / Hardware Previous:</strong> Previous Track</li>
+        <li><strong>F:</strong> Toggle Full Screen</li>
+        <li><strong>M / Hardware Mute:</strong> Toggle Mute</li>
+        <li><strong>ArrowUp / ArrowDown:</strong> Adjust Volume (+5% / -5%)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Section 4: Realtime Live Counter -->
+  <div class="section">
+    <div class="section-title">🟢 4. Real-Time Live User Counter</div>
+    <div class="card">
+      <ul>
+        <li>Green pulsing dot on the topbar shows <span class="badge">● Live</span> connected listeners right now.</li>
+        <li>Uses Firebase Realtime Database with 12s active session cutoff — when a user leaves or closes the tab, they are automatically removed in real time.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    જય અંબે — Garba Jamming App &bull; Created with ❤️ by Ishan
+  </div>
+</div>
+
+</body>
+</html>

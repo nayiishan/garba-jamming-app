@@ -1,4 +1,4 @@
-const CACHE_NAME = 'garba-jamming-v4';
+const CACHE_NAME = 'garba-jamming-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

@@ -666,6 +666,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
           Share & Scan QR Code
         </button>
+      </div>
       <div>
         <div class="pop-section-title">Legal</div>
         <button class="action-btn" id="disclaimer-open-btn">
@@ -852,7 +853,7 @@
         // Close settings popover
         var sp = document.getElementById('settings-popover');
         var sb = document.getElementById('settings-btn');
-        if (sp) { sp.style.opacity='0'; sp.style.pointerEvents='none'; sp.style.transform='translateY(12px) scale(0.95)'; }
+        if (sp) { sp.classList.remove('open'); }
         if (sb) sb.classList.remove('open');
       });
       closeBtn.addEventListener('click', function() { modal.style.display = 'none'; });
